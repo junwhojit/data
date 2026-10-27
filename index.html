@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>기계학습을 활용해 문제 해결하기</title>
+<style>*{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 통계표 문서처럼 왼쪽 정렬 한 단. 섹션마다 '통계표명/단위' 같은 작은 머리표, 데이터는 카드 격자 */
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#16212B; --muted:#596775; --line:#D8DEE4;
+  --accent:#0B5D7A; --accent-soft:#E2EEF3; --warn:#8A4B00; --warn-bg:#FFF3DF;
+  --code-bg:#EEF2F5;
+  --f-display:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F161C; --surface:#16202A; --ink:#E4EAEF; --muted:#9AA8B4; --line:#283541;
+  --accent:#62B6D3; --accent-soft:#14303B; --warn:#F2B860; --warn-bg:#30251A; --code-bg:#111A22;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F161C; --surface:#16202A; --ink:#E4EAEF; --muted:#9AA8B4; --line:#283541;
+  --accent:#62B6D3; --accent-soft:#14303B; --warn:#F2B860; --warn-bg:#30251A; --code-bg:#111A22;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;padding:0 20px}
+.wrap{max-width:1080px;margin:0 auto;padding-block:40px 80px;display:grid;gap:72px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.65rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0;max-width:66ch}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.tabhead{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-family:var(--f-mono);font-size:.8rem;color:var(--muted);border-top:2px solid var(--ink);border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:24px}
+.tabhead b{font-weight:500;color:var(--ink)}
+section{display:grid;gap:20px}
+.lead{font-size:1.08rem;color:var(--muted)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:40px;align-items:end}
+.hero-text{display:grid;gap:18px;min-width:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-size:.82rem;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px}
+.specimen{background:var(--surface);border:1px solid var(--line);padding:18px 18px 12px;min-width:0}
+.specimen .tabhead{margin-bottom:10px}
+.specimen svg{display:block;width:100%;height:auto}
+.specimen figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:2px solid var(--ink)}
+.step{padding:20px 18px 22px;border-right:1px solid var(--line);display:grid;gap:10px;align-content:start;min-width:0}
+.step:last-child{border-right:0}
+.step .n{font-family:var(--f-mono);font-size:2.2rem;line-height:1;color:var(--accent)}
+.step ul{margin:0;padding-left:1.1em;font-size:.93rem;display:grid;gap:4px}
+.step .fn{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+.note-box{display:grid;gap:4px;font-size:.86rem;background:var(--accent-soft);border-radius:4px;padding:10px 12px}
+.note-box b{font-family:var(--f-display);font-size:.84rem;color:var(--accent)}
+.step.key{background:var(--accent-soft)}
+.step .badge{justify-self:start;font-size:.72rem;font-weight:600;background:var(--accent);color:var(--surface);padding:1px 8px;border-radius:3px}
+
+/* data */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:inherit;font-size:.84rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:4px 12px;border-radius:999px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.chip i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.btn{font:inherit;font-size:.88rem;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--surface);padding:7px 14px;border-radius:6px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);padding:18px;display:grid;gap:12px;grid-template-rows:auto auto auto 1fr auto;min-width:0}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.card .no{font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+.goals{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.goal{font-family:var(--f-mono);font-size:.72rem;font-weight:500;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.stats div{padding:6px 0;display:grid}
+.stats span{font-size:.72rem;color:var(--muted)}
+.stats b{font-family:var(--f-mono);font-weight:500;font-size:.92rem}
+.stats .na b{color:var(--warn)}
+.card .q{font-size:.92rem;display:grid;gap:4px}
+.card .q b{font-size:.78rem;color:var(--accent);font-family:var(--f-display)}
+.card .q ul{margin:0;padding-left:1.1em;display:grid;gap:3px}
+.card .note{font-size:.82rem;color:var(--muted)}
+.card .actions{display:flex;gap:8px;flex-wrap:wrap}
+.preview{grid-column:1/-1;background:var(--surface);border:1px solid var(--ink);padding:16px;display:grid;gap:10px;min-width:0}
+.preview .head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.tablebox{overflow-x:auto;max-height:340px;overflow-y:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;font-size:.82rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right}
+th{position:sticky;top:0;background:var(--code-bg);font-weight:600;text-align:left}
+td:first-child,th:first-child{text-align:left;font-family:var(--f-mono)}
+td.nan{background:var(--warn-bg);color:var(--warn);font-family:var(--f-mono);text-align:center}
+.status{font-size:.86rem;color:var(--muted);min-height:1.4em}
+.allbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);padding:14px 18px}
+
+/* interpret */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px}
+.qlist{margin:0;padding:0;list-style:none;border-top:2px solid var(--ink)}
+.qlist.must{counter-reset:none}
+.qlist li{border-bottom:1px solid var(--line);padding:12px 0;display:grid;grid-template-columns:7.5em 1fr;gap:12px}
+.qlist li b{font-family:var(--f-display);font-size:.9rem}
+.qlist .eg{display:block;margin-top:6px;font-size:.88rem;color:var(--muted)}
+.warnbox{background:var(--warn-bg);border-left:3px solid var(--warn);padding:16px 18px;display:grid;gap:10px}
+.warnbox h3{color:var(--warn)}
+.warnbox ul{margin:0;padding-left:1.1em;display:grid;gap:8px;font-size:.94rem}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:3px}
+
+/* code */
+.cell{display:grid;gap:6px;min-width:0}
+.cellhead{display:flex;gap:10px;align-items:baseline;font-size:.92rem;flex-wrap:wrap}
+.cellno{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 6px;white-space:nowrap}
+.cellstage{font-size:1rem;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.codebox pre{padding-right:76px}
+.codebox{position:relative;background:var(--code-bg);border:1px solid var(--line);min-width:0}
+.codebox pre{margin:0;padding:18px;overflow-x:auto;font-family:var(--f-mono);font-size:.84rem;line-height:1.65}
+.codebox .btn{position:absolute;top:10px;right:10px}
+.cm{color:var(--muted)}
+
+/* checklist */
+.checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cgroup{border:0;border-top:2px solid var(--ink);margin:0;padding:10px 0 0;display:grid;gap:2px;min-width:0}
+.cgroup legend{font-family:var(--f-display);font-weight:700;font-size:1.02rem;padding:0 0 6px;float:left;width:100%}
+.citem{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:8px 6px;border-radius:4px;cursor:pointer;font-size:.94rem}
+.citem:hover{background:var(--accent-soft)}
+.citem input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--accent);cursor:pointer}
+.citem input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.cbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+#cprog{font-family:var(--f-mono);font-size:.9rem}
+
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.legend div{display:flex;gap:10px;align-items:center;font-size:.9rem}
+footer{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;display:grid;gap:4px}
+
+@media (max-width:900px){
+  .hero,.two{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .step:nth-child(2){border-right:0}
+  .step:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  body{padding:0 16px}
+  .steps,.checklist,.grid{grid-template-columns:1fr}
+  .step{border-right:0;border-bottom:1px solid var(--line)}
+  .qlist.must{counter-reset:none}
+.qlist li{grid-template-columns:1fr;gap:2px}
+  .wrap{gap:56px}
+}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--accent)}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="hero-text">
+    <span class="eyebrow">인공지능 기초 · 2학기 수행평가 · 25점</span>
+    <h1>기계학습을 활용해<br>문제 해결하기</h1>
+    <p class="lead">국가 SDG 지표 데이터 14개 중 하나를 골라, 파이썬으로 회귀 모델을 만들고 그 결과가 무엇을 말하는지 해석합니다.</p>
+    <div class="meta">
+      <span class="tag">Python · pandas · scikit-learn</span>
+      <span class="tag">출처: 지표누리 SDG 국가지표</span>
+    </div>
+  </div>
+  <figure class="specimen" style="margin:0">
+    <div class="tabhead"><span>통계표명</span><b>국제선 항공 승객수</b><span>단위</span><b>천 명</b></div>
+    <svg id="spark" viewBox="0 0 360 170" role="img" aria-label="2011년부터 2023년까지 국제선 항공 승객수 꺾은선 그래프"></svg>
+    <figcaption>2021년 값은 오류일까요, 실제일까요? 이런 질문이 이 프로젝트의 출발점입니다. (데이터 10번)</figcaption>
+  </figure>
+</header>
+
+<section id="steps">
+  <div>
+    <h2>이렇게 진행합니다</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <span class="n">1</span>
+      <h3>데이터 및 주제 정하기</h3>
+      <ul>
+        <li>데이터 하나를 고릅니다. 아래 예시 중에서 골라도 되고, 직접 찾아도 됩니다. 직접 찾을 경우 CSV 파일이어야 하고 출처를 기록합니다.</li>
+        <li>데이터를 고른 이유를 씁니다.</li>
+        <li>데이터와 관련해 해결할 질문을 세웁니다. 아래 데이터 카드의 질문 예시를 참고하세요.</li>
+        <li>데이터 개수, 자료형, 내가 쓸 열의 평균·최솟값·최댓값을 정리합니다.</li>
+      </ul>
+      <div class="fn">info() · describe()</div>
+    </div>
+    <div class="step">
+      <span class="n">2</span>
+      <h3>데이터 전처리하기</h3>
+      <ul>
+        <li>결측치의 개수를 확인합니다.</li>
+        <li>결측치가 있으면 삭제할지, 대푯값으로 대체할지 정하고 처리합니다. 결측치가 없다면 "결측치가 0개라 처리하지 않았다"고 씁니다.</li>
+        <li>결측치를 처리한 뒤 상자 그림을 그려 이상치를 확인하고, 그래프를 보고 한 줄로 씁니다.</li>
+      </ul>
+      <div class="note-box">
+        <b>채점 안내</b>
+        <span>결측치나 이상치가 몇 개인지가 아니라, 확인하고 처리한 방법과 그 이유를 봅니다. 어떤 파일을 골라도 불리하지 않아요.</span>
+      </div>
+      <div class="fn">isna().sum() · dropna(subset=[...]) · fillna() · plt.boxplot()</div>
+    </div>
+    <div class="step">
+      <span class="n">3</span>
+      <h3>기계학습 모델(회귀) 만들기</h3>
+      <ul>
+        <li>이 문제가 회귀 모델에 적합한 이유를 씁니다.</li>
+        <li>독립 변수(X)와 종속 변수(y)를 정합니다.</li>
+        <li>훈련 데이터와 테스트 데이터를 7:3으로 나눕니다.</li>
+        <li>훈련 데이터로 선형 회귀 모델을 학습시킵니다.</li>
+      </ul>
+      <div class="fn">X = df[['열']] · y = df['열'] · train_test_split() · LinearRegression() · fit()</div>
+    </div>
+    <div class="step">
+      <span class="n">4</span>
+      <h3>성능 평가와 결과 해석하기</h3>
+      <ul>
+        <li>테스트 데이터로 예측한 결과를 확인합니다.</li>
+        <li>결정 계수를 구해, 예측을 잘했는지 확인합니다.</li>
+        <li>맨 처음 세운 질문에 대한 답을 씁니다.</li>
+        <li>데이터 분석을 통해 알게 된 점, 아쉬운 점, 소감을 씁니다.</li>
+      </ul>
+      <div class="fn">predict() · r2_score()</div>
+    </div>
+  </div>
+  <p style="font-size:.92rem;color:var(--muted)">독립 변수를 2개 이상 쓰는 다중 선형 회귀라면, 교과서 114쪽처럼 <code>MinMaxScaler</code>로 정규화한 뒤 데이터를 나누어도 됩니다.</p>
+</section>
+
+<section id="data">
+  <div>
+    <h2>데이터를 골라 보세요</h2>
+  </div>
+  <p>모든 파일은 <code>pd.read_csv('파일이름.csv')</code>로 바로 열립니다. 행은 연도, 열은 속성이며 열 이름 괄호 안이 단위입니다. 위쪽 색깔 표시는 그 데이터가 관련된 SDG 목표 번호입니다.</p>
+  <div class="allbar">
+    <span>14개 데이터를 한 번에 받으려면</span>
+    <span class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="dl-all" type="button">전체 묶음 받기 (zip)</button>
+    </span>
+  </div>
+  <div class="toolbar" id="filters" aria-label="SDG 목표로 거르기"></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <div class="grid" id="grid"></div>
+</section>
+
+
+<section id="code">
+  <div>
+    <h2>시작 코드</h2>
+  </div>
+  <p>파일을 올리고 데이터를 불러온 뒤, 과제에 필요한 라이브러리를 불러오는 코드입니다. <b>← 표시</b>가 있는 곳의 파일 이름만 내가 올린 파일 이름으로 바꾸세요. 나머지 코드는 교과서를 참고해 직접 작성하세요.</p>
+  <div class="codebox"><button class="btn ghost copybtn" type="button" data-for="code1">복사</button><pre id="code1">from google.colab import files
+uploaded = files.upload()
+
+import pandas as pd
+df = pd.read_csv('파일이름.csv')   <span class="cm"># ← 내가 올린 파일 이름으로 바꾸기</span>
+
+<span class="cm"># 그래프 그리기 (한글 깨짐 방지)</span>
+!pip install koreanize-matplotlib
+import koreanize_matplotlib
+import matplotlib.pyplot as plt
+
+<span class="cm"># 기계학습 (회귀 모델, 성능 평가)</span>
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score</pre></div>
+</section>
+
+<section id="check">
+  <div>
+    <h2>제출 전 점검</h2>
+  </div>
+  <div class="cbar"><span id="cprog" role="status" aria-live="polite">15개 중 0개 완료</span><button class="btn ghost" id="creset" type="button">모두 지우기</button></div>
+  <div class="checklist">
+    <fieldset class="cgroup"><legend>1. 데이터 및 주제 정하기</legend>
+      <label class="citem" for="chk1"><input type="checkbox" id="chk1"><span>데이터를 골랐다.</span></label>
+      <label class="citem" for="chk2"><input type="checkbox" id="chk2"><span>데이터를 고른 이유를 썼다.</span></label>
+      <label class="citem" for="chk3"><input type="checkbox" id="chk3"><span>해결할 질문을 세웠다.</span></label>
+      <label class="citem" for="chk4"><input type="checkbox" id="chk4"><span>데이터 관련 정보(개수, 자료형, 평균, 최솟값, 최댓값)를 정리했다.</span></label>
+    </fieldset>
+    <fieldset class="cgroup"><legend>2. 데이터 전처리하기</legend>
+      <label class="citem" for="chk5"><input type="checkbox" id="chk5"><span>결측치 개수를 확인했다.</span></label>
+      <label class="citem" for="chk6"><input type="checkbox" id="chk6"><span>결측치를 처리했다.</span></label>
+      <label class="citem" for="chk7"><input type="checkbox" id="chk7"><span>상자 그림(Box plot)을 그리고 이상치를 확인했다.</span></label>
+    </fieldset>
+    <fieldset class="cgroup"><legend>3. 기계학습 모델(회귀) 만들기</legend>
+      <label class="citem" for="chk8"><input type="checkbox" id="chk8"><span>이 문제가 회귀 모델에 적합한 이유를 썼다.</span></label>
+      <label class="citem" for="chk9"><input type="checkbox" id="chk9"><span>독립 변수(X)와 종속 변수(y)를 정했다.</span></label>
+      <label class="citem" for="chk10"><input type="checkbox" id="chk10"><span>훈련 데이터와 테스트 데이터를 나눴다.</span></label>
+      <label class="citem" for="chk11"><input type="checkbox" id="chk11"><span>선형 회귀 모델을 학습시켰다.</span></label>
+    </fieldset>
+    <fieldset class="cgroup"><legend>4. 성능 평가와 결과 해석하기</legend>
+      <label class="citem" for="chk12"><input type="checkbox" id="chk12"><span>테스트 데이터로 예측한 결과를 확인했다.</span></label>
+      <label class="citem" for="chk13"><input type="checkbox" id="chk13"><span>결정 계수(r2)를 구하고, 예측을 잘했는지 확인했다.</span></label>
+      <label class="citem" for="chk14"><input type="checkbox" id="chk14"><span>처음 세운 질문에 대한 답을 구했다.</span></label>
+      <label class="citem" for="chk15"><input type="checkbox" id="chk15"><span>알게 된 점, 아쉬운 점, 소감을 썼다.</span></label>
+    </fieldset>
+  </div>
+</section>
+
+
+<footer>
+  <span>데이터 출처: 지표누리(국가데이터처) SDG 국가지표. 원본 값을 바꾸지 않고 형식만 정리했습니다.</span>
+  
+</footer>
+</div>
+
+<script>
+const ITEMS = [{"id": "01", "file": "01_경지규모별_노동생산성.csv", "title": "농업: 경지 규모와 노동생산성", "rows": 207, "cols": 3, "period": "2003~2025", "src": "경지규모별 시간당 노동생산성(지표누리)", "note": "경지 규모 9개 구간을 세로로 펼친 자료. '경지규모_중간값'은 구간의 가운데 값(10ha 이상은 12로 가정)", "q": "경지 규모가 클수록 노동생산성이 높아질까? 연도까지 함께 넣으면 예측이 더 좋아질까?", "goals": [2], "ind": "2.3.1"}, {"id": "02", "file": "02_영양부족_빈혈.csv", "title": "건강: 영양부족과 빈혈", "rows": 21, "cols": 19, "period": "1998~2024", "src": "영양섭취부족 인구비율 / 10세 이상 여성 빈혈 유병률(지표누리)", "note": "조사 연도가 1998, 2001, 2005, 2007년 이후로 일정하지 않음", "q": "어떤 집단(연령·소득·지역)의 영양부족 비율이 서로 비슷하게 움직일까? 영양부족 비율로 여성 빈혈 유병률을 예측할 수 있을까?", "goals": [2], "ind": "2.1.1 · 2.2.3"}, {"id": "03", "file": "03_온실가스_배출량.csv", "title": "환경: 온실가스 종류별 배출량", "rows": 28, "cols": 8, "period": "1996~2023", "src": "온실가스별 배출 추이(지표누리)", "note": "'온실가스_총배출량'은 나머지 7개 가스의 합계임", "q": "어떤 온실가스가 늘고 어떤 가스가 줄었을까? 한 가스의 배출량으로 다른 가스의 배출량을 예측할 수 있을까?", "goals": [13], "ind": "13.2.2"}, {"id": "04", "file": "04_빈곤율_소득분배.csv", "title": "사회: 빈곤율과 소득분배", "rows": 14, "cols": 14, "period": "2011~2024", "src": "상대적 빈곤율 / 팔마비율(지표누리)", "note": "팔마비율은 소득 상위 10%와 하위 40%의 소득 비율로, 클수록 불평등함", "q": "노인 빈곤율과 소득 불평등(팔마비율)은 관계가 있을까? 연령대별 빈곤율은 어떻게 다를까?", "goals": [1, 10], "ind": "1.2.1 · 10.1.1"}, {"id": "05", "file": "05_실업률_성별연령별.csv", "title": "고용: 성별·연령별 실업률", "rows": 16, "cols": 9, "period": "2010~2025", "src": "실업률(성 및 연령별)(지표누리)", "note": "", "q": "청년 실업률로 전체 실업률을 예측할 수 있을까? 연령대별 실업률은 서로 비슷하게 움직일까?", "goals": [8], "ind": "8.5.2"}, {"id": "06", "file": "06_보건의료인력.csv", "title": "보건: 보건의료인력 수", "rows": 16, "cols": 9, "period": "2010~2025", "src": "보건의료 인력수(지표누리)", "note": "'전체_수'는 나머지 직종의 합계임", "q": "간호사 수로 다른 직종의 인력 수를 예측할 수 있을까? 직종별 증가 추세는 어떻게 다를까?", "goals": [3], "ind": "3.c.1"}, {"id": "07", "file": "07_임금_물가.csv", "title": "경제: 임금과 물가", "rows": 20, "cols": 4, "period": "2006~2025", "src": "근로자의 평균 시간당 임금 / 소비자물가지수(지표누리)", "note": "임금을 물가지수로 나누면 물가를 고려한 '실질임금'을 새 속성으로 만들 수 있음", "q": "물가가 오르면 임금도 오를까? 물가를 고려해도 임금이 올랐을까? 남녀 임금 차이는 줄고 있을까?", "goals": [8, 2], "ind": "8.5.1 · 2.c.1"}, {"id": "08", "file": "08_물가지수.csv", "title": "경제: 소비자물가와 농축수산물 물가", "rows": 26, "cols": 2, "period": "2000~2025", "src": "소비자/농축수산물 물가지수(지표누리)", "note": "2020년 값을 100으로 한 지수", "q": "소비자물가지수로 농축수산물 물가지수를 예측할 수 있을까?", "goals": [2], "ind": "2.c.1"}, {"id": "09", "file": "09_자연재난_인명피해.csv", "title": "안전: 자연재난 인명피해", "rows": 30, "cols": 1, "period": "1995~2024", "src": "자연재난으로 인한 인명피해(지표누리)", "note": "폭염은 2018년부터, 한파는 2023년부터 집계에 포함됨", "q": "자연재난 피해는 줄고 있을까? 유난히 피해가 컸던 해는 언제일까?", "goals": [1], "ind": "1.5.1"}, {"id": "10", "file": "10_항공승객_관광종사자.csv", "title": "관광: 국제선 항공 승객과 관광 종사자", "rows": 14, "cols": 2, "period": "2011~2024", "src": "국제선 항공 승객수 / 관광산업 종사자수(지표누리)", "note": "두 자료의 수집 기간이 서로 다름", "q": "항공 승객 수로 관광산업 종사자 수를 예측할 수 있을까? 코로나19 시기에는 두 값이 어떻게 달라졌을까?", "goals": [9, 8], "ind": "9.1.2 · 8.9.2"}, {"id": "11", "file": "11_국내물질소비량.csv", "title": "자원: 국내물질소비량", "rows": 24, "cols": 3, "period": "2000~2023", "src": "국내물질소비량(지표누리)", "note": "세 속성의 단위와 크기가 크게 다름(정규화 필요성 확인)", "q": "경제 규모에 비해 자원을 더 효율적으로 쓰고 있을까? 총소비량과 1인당 소비량은 어떤 관계일까?", "goals": [8], "ind": "8.4.2"}, {"id": "12", "file": "12_흡연_음주_암사망률.csv", "title": "건강: 흡연·음주와 암 사망률", "rows": 25, "cols": 5, "period": "2000~2024", "src": "현재 흡연율 / 1인당 알코올 소비량 / 암 사망률(지표누리)", "note": "세 자료의 조사 연도가 서로 다름", "q": "흡연율이나 음주량으로 암 사망률을 예측할 수 있을까?", "goals": [3], "ind": "3.a.1 · 3.5.2 · 3.4.1"}, {"id": "13", "file": "13_에너지_환경.csv", "title": "환경: 에너지와 대기오염", "rows": 26, "cols": 7, "period": "2000~2025", "src": "재생에너지 발전 용량 / 재생에너지 비율 / 에너지 집약도 / GDP당 온실가스 / 온실가스 총배출량 / 미세먼지(지표누리)", "note": "자료마다 조사 기간이 다름. 에너지집약도 2024·2025년은 잠정치. 초미세먼지(PM2.5)는 2015년부터 측정", "q": "재생에너지가 늘면 온실가스나 미세먼지가 줄어들까? 에너지 효율이 좋아지면 온실가스가 줄어들까?", "goals": [7, 9, 11, 13], "ind": "7.b.1 · 7.2.1 · 7.3.1 · 9.4.1 · 11.6.2 · 13.2.2"}, {"id": "14", "file": "14_경제지표.csv", "title": "경제: 연구개발과 경제지표", "rows": 26, "cols": 5, "period": "2000~2025", "src": "GDP 대비 연구개발비 / 제조업 부가가치 비율 / 1인당 실질GDP 성장률 / GDP 대비 노동소득 / 실업률(지표누리)", "note": "자료마다 조사 기간이 다름", "q": "연구개발비 비율이 높아지면 경제 성장률도 높아질까? 경제 성장률로 실업률을 예측할 수 있을까?", "goals": [9, 8, 10], "ind": "9.5.1 · 9.2.1 · 8.1.1 · 10.4.1 · 8.5.2"}];
+const SDG = {"1": {"name": "빈곤 종식", "bg": "#E5243B", "fg": "#fff"}, "2": {"name": "기아 종식", "bg": "#DDA63A", "fg": "#1d1606"}, "3": {"name": "건강과 웰빙", "bg": "#4C9F38", "fg": "#fff"}, "7": {"name": "깨끗한 에너지", "bg": "#FCC30B", "fg": "#1d1606"}, "8": {"name": "양질의 일자리와 경제성장", "bg": "#A21942", "fg": "#fff"}, "9": {"name": "산업·혁신·사회기반시설", "bg": "#FD6925", "fg": "#fff"}, "10": {"name": "불평등 완화", "bg": "#DD1367", "fg": "#fff"}, "11": {"name": "지속가능한 도시와 공동체", "bg": "#FD9D24", "fg": "#1d1606"}, "13": {"name": "기후변화 대응", "bg": "#3F7E44", "fg": "#fff"}, "16": {"name": "평화·정의·제도", "bg": "#00689D", "fg": "#fff"}};
+const $ = s => document.querySelector(s);
+const statusEl = $('#status');
+let filter = null, openId = null;
+
+/* sparkline (real values, one scale) */
+(function(){
+  const yrs=[2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023];
+  const v=[42649,47703,50987,56779,61434,73001,76956,85925,90386,14240,3209,19500,68319];
+  const W=360,H=170,L=46,R=12,T=12,B=26,max=100000;
+  const x=i=>L+(W-L-R)*i/(yrs.length-1), y=val=>T+(H-T-B)*(1-val/max);
+  let s='';
+  [0,50000,100000].forEach(t=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/>`+
+    `<text x="${L-6}" y="${y(t)+4}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${t/1000}k</text>`});
+  const pts=v.map((d,i)=>`${x(i)},${y(d)}`).join(' ');
+  s+=`<polygon points="${x(0)},${y(0)} ${pts} ${x(v.length-1)},${y(0)}" fill="var(--accent-soft)"/>`;
+  s+=`<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  v.forEach((d,i)=>{s+=`<circle cx="${x(i)}" cy="${y(d)}" r="${i===10?4.5:2.5}" fill="${i===10?'var(--warn)':'var(--accent)'}"/>`});
+  s+=`<text x="${x(10)}" y="${y(v[10])-10}" text-anchor="middle" font-size="11" fill="var(--warn)" font-family="IBM Plex Mono,monospace">3,209</text>`;
+  [0,4,8,12].forEach(i=>{s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${yrs[i]}</text>`});
+  $('#spark').innerHTML=s;
+})();
+
+function goalChip(g){const o=SDG[g];return `<span class="goal" style="background:${o.bg};color:${o.fg}" title="목표 ${g} ${o.name}">SDG ${g}</span>`}
+
+function renderFilters(){
+  const used=[...new Set(ITEMS.flatMap(i=>i.goals))].sort((a,b)=>a-b);
+  let h=`<button class="chip" type="button" data-g="" aria-pressed="${filter===null}">전체</button>`;
+  used.forEach(g=>{h+=`<button class="chip" type="button" data-g="${g}" aria-pressed="${filter===g}"><i style="background:${SDG[g].bg}"></i>${g}. ${SDG[g].name}</button>`});
+  $('#filters').innerHTML=h;
+}
+function renderLegend(){
+  $('#legend').innerHTML=Object.keys(SDG).map(Number).sort((a,b)=>a-b).map(g=>{
+    const ids=ITEMS.filter(i=>i.goals.includes(g)).map(i=>i.id).join(', ');
+    return `<div>${goalChip(g)}<span>${SDG[g].name} <span style="color:var(--muted);font-family:var(--f-mono);font-size:.8rem">· ${ids}번</span></span></div>`}).join('');
+}
+function renderGrid(){
+  const list=ITEMS.filter(i=>filter===null||i.goals.includes(filter));
+  let h='';
+  list.forEach(i=>{
+    h+=`<article class="card" id="c${i.id}">
+      <div class="top"><span class="no">${i.id}</span><span class="goals">${i.goals.map(goalChip).join('')}</span></div>
+      <h3>${i.title}</h3>
+      <div class="stats"><div><span>행</span><b>${i.rows}</b></div><div><span>기간</span><b>${i.period}</b></div><div><span>속성(열)</span><b>${i.cols}</b></div></div>
+      <div class="q"><b>질문 예시</b><ul>${i.q.split(/(?<=\?)\s+/).map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div style="display:grid;gap:10px;align-content:end">
+        ${i.note?`<p class="note">${i.note}</p>`:''}
+        <p class="note" style="font-family:var(--f-mono)">지표 ${i.ind}</p>
+        <div class="actions"><button class="btn ghost" type="button" data-prev="${i.id}" aria-expanded="${openId===i.id}">미리보기</button><button class="btn" type="button" data-dl="${i.id}">CSV 받기</button></div>
+      </div></article>`;
+    if(openId===i.id) h+=`<div class="preview" id="pv"></div>`;
+  });
+  $('#grid').innerHTML=h;
+  if(openId && list.some(i=>i.id===openId)) loadPreview(openId);
+}
+
+const cache={};
+const EMBED={"01": "연도,경지규모,경지규모_중간값(ha),시간당_노동생산성(천원)\n2003,0.5ha미만,0.25,6.0\n2003,0.5~1.0ha미만,0.75,7.0\n2003,1.0~1.5ha미만,1.25,10.0\n2003,1.5~2.0ha미만,1.75,12.0\n2003,2.0~3.0ha미만,2.5,12.0\n2003,3.0~5.0ha미만,4.0,13.0\n2003,5.0~7.0ha미만,6.0,15.0\n2003,7.0~10.0ha미만,8.5,18.0\n2003,10.0ha이상,12.0,17.0\n2004,0.5ha미만,0.25,8.0\n2004,0.5~1.0ha미만,0.75,10.0\n2004,1.0~1.5ha미만,1.25,10.0\n2004,1.5~2.0ha미만,1.75,11.0\n2004,2.0~3.0ha미만,2.5,12.0\n2004,3.0~5.0ha미만,4.0,14.0\n2004,5.0~7.0ha미만,6.0,16.0\n2004,7.0~10.0ha미만,8.5,18.0\n2004,10.0ha이상,12.0,21.0\n2005,0.5ha미만,0.25,9.0\n2005,0.5~1.0ha미만,0.75,10.0\n2005,1.0~1.5ha미만,1.25,11.0\n2005,1.5~2.0ha미만,1.75,12.0\n2005,2.0~3.0ha미만,2.5,13.0\n2005,3.0~5.0ha미만,4.0,14.0\n2005,5.0~7.0ha미만,6.0,14.0\n2005,7.0~10.0ha미만,8.5,18.0\n2005,10.0ha이상,12.0,15.0\n2006,0.5ha미만,0.25,9.0\n2006,0.5~1.0ha미만,0.75,10.0\n2006,1.0~1.5ha미만,1.25,11.0\n2006,1.5~2.0ha미만,1.75,12.0\n2006,2.0~3.0ha미만,2.5,14.0\n2006,3.0~5.0ha미만,4.0,15.0\n2006,5.0~7.0ha미만,6.0,15.0\n2006,7.0~10.0ha미만,8.5,22.0\n2006,10.0ha이상,12.0,23.0\n2007,0.5ha미만,0.25,8.0\n2007,0.5~1.0ha미만,0.75,11.0\n2007,1.0~1.5ha미만,1.25,10.0\n2007,1.5~2.0ha미만,1.75,12.0\n2007,2.0~3.0ha미만,2.5,13.0\n2007,3.0~5.0ha미만,4.0,14.0\n2007,5.0~7.0ha미만,6.0,17.0\n2007,7.0~10.0ha미만,8.5,20.0\n2007,10.0ha이상,12.0,18.0\n2008,0.5ha미만,0.25,8.0\n2008,0.5~1.0ha미만,0.75,10.0\n2008,1.0~1.5ha미만,1.25,11.0\n2008,1.5~2.0ha미만,1.75,13.0\n2008,2.0~3.0ha미만,2.5,15.0\n2008,3.0~5.0ha미만,4.0,15.0\n2008,5.0~7.0ha미만,6.0,16.0\n2008,7.0~10.0ha미만,8.5,25.0\n2008,10.0ha이상,12.0,22.0\n2009,0.5ha미만,0.25,8.0\n2009,0.5~1.0ha미만,0.75,13.0\n2009,1.0~1.5ha미만,1.25,13.0\n2009,1.5~2.0ha미만,1.75,14.0\n2009,2.0~3.0ha미만,2.5,15.0\n2009,3.0~5.0ha미만,4.0,15.0\n2009,5.0~7.0ha미만,6.0,17.0\n2009,7.0~10.0ha미만,8.5,21.0\n2009,10.0ha이상,12.0,24.0\n2010,0.5ha미만,0.25,9.0\n2010,0.5~1.0ha미만,0.75,15.0\n2010,1.0~1.5ha미만,1.25,14.0\n2010,1.5~2.0ha미만,1.75,13.0\n2010,2.0~3.0ha미만,2.5,15.0\n2010,3.0~5.0ha미만,4.0,19.0\n2010,5.0~7.0ha미만,6.0,18.0\n2010,7.0~10.0ha미만,8.5,26.0\n2010,10.0ha이상,12.0,26.0\n2011,0.5ha미만,0.25,8.0\n2011,0.5~1.0ha미만,0.75,11.0\n2011,1.0~1.5ha미만,1.25,15.0\n2011,1.5~2.0ha미만,1.75,13.0\n2011,2.0~3.0ha미만,2.5,16.0\n2011,3.0~5.0ha미만,4.0,18.0\n2011,5.0~7.0ha미만,6.0,15.0\n2011,7.0~10.0ha미만,8.5,34.0\n2011,10.0ha이상,12.0,31.0\n2012,0.5ha미만,0.25,7.0\n2012,0.5~1.0ha미만,0.75,11.0\n2012,1.0~1.5ha미만,1.25,17.0\n2012,1.5~2.0ha미만,1.75,15.0\n2012,2.0~3.0ha미만,2.5,17.0\n2012,3.0~5.0ha미만,4.0,22.0\n2012,5.0~7.0ha미만,6.0,24.0\n2012,7.0~10.0ha미만,8.5,34.0\n2012,10.0ha이상,12.0,27.0\n2013,0.5ha미만,0.25,8.0\n2013,0.5~1.0ha미만,0.75,11.0\n2013,1.0~1.5ha미만,1.25,16.0\n2013,1.5~2.0ha미만,1.75,19.0\n2013,2.0~3.0ha미만,2.5,18.0\n2013,3.0~5.0ha미만,4.0,22.0\n2013,5.0~7.0ha미만,6.0,24.0\n2013,7.0~10.0ha미만,8.5,22.0\n2013,10.0ha이상,12.0,25.0\n2014,0.5ha미만,0.25,9.0\n2014,0.5~1.0ha미만,0.75,13.0\n2014,1.0~1.5ha미만,1.25,17.0\n2014,1.5~2.0ha미만,1.75,18.0\n2014,2.0~3.0ha미만,2.5,18.0\n2014,3.0~5.0ha미만,4.0,22.0\n2014,5.0~7.0ha미만,6.0,26.0\n2014,7.0~10.0ha미만,8.5,32.0\n2014,10.0ha이상,12.0,28.0\n2015,0.5ha미만,0.25,10.0\n2015,0.5~1.0ha미만,0.75,15.0\n2015,1.0~1.5ha미만,1.25,16.0\n2015,1.5~2.0ha미만,1.75,19.0\n2015,2.0~3.0ha미만,2.5,24.0\n2015,3.0~5.0ha미만,4.0,25.0\n2015,5.0~7.0ha미만,6.0,36.0\n2015,7.0~10.0ha미만,8.5,36.0\n2015,10.0ha이상,12.0,33.0\n2016,0.5ha미만,0.25,10.0\n2016,0.5~1.0ha미만,0.75,15.0\n2016,1.0~1.5ha미만,1.25,18.0\n2016,1.5~2.0ha미만,1.75,18.0\n2016,2.0~3.0ha미만,2.5,24.0\n2016,3.0~5.0ha미만,4.0,27.0\n2016,5.0~7.0ha미만,6.0,31.0\n2016,7.0~10.0ha미만,8.5,42.0\n2016,10.0ha이상,12.0,33.0\n2017,0.5ha미만,0.25,8.0\n2017,0.5~1.0ha미만,0.75,16.0\n2017,1.0~1.5ha미만,1.25,19.0\n2017,1.5~2.0ha미만,1.75,20.0\n2017,2.0~3.0ha미만,2.5,26.0\n2017,3.0~5.0ha미만,4.0,29.0\n2017,5.0~7.0ha미만,6.0,41.0\n2017,7.0~10.0ha미만,8.5,42.0\n2017,10.0ha이상,12.0,42.0\n2018,0.5ha미만,0.25,8.0\n2018,0.5~1.0ha미만,0.75,13.0\n2018,1.0~1.5ha미만,1.25,14.0\n2018,1.5~2.0ha미만,1.75,18.0\n2018,2.0~3.0ha미만,2.5,22.0\n2018,3.0~5.0ha미만,4.0,29.0\n2018,5.0~7.0ha미만,6.0,28.0\n2018,7.0~10.0ha미만,8.5,39.0\n2018,10.0ha이상,12.0,45.0\n2019,0.5ha미만,0.25,7.0\n2019,0.5~1.0ha미만,0.75,12.0\n2019,1.0~1.5ha미만,1.25,13.0\n2019,1.5~2.0ha미만,1.75,16.0\n2019,2.0~3.0ha미만,2.5,20.0\n2019,3.0~5.0ha미만,4.0,25.0\n2019,5.0~7.0ha미만,6.0,30.0\n2019,7.0~10.0ha미만,8.5,32.0\n2019,10.0ha이상,12.0,44.0\n2020,0.5ha미만,0.25,7.0\n2020,0.5~1.0ha미만,0.75,12.0\n2020,1.0~1.5ha미만,1.25,15.0\n2020,1.5~2.0ha미만,1.75,18.0\n2020,2.0~3.0ha미만,2.5,22.0\n2020,3.0~5.0ha미만,4.0,28.0\n2020,5.0~7.0ha미만,6.0,31.0\n2020,7.0~10.0ha미만,8.5,32.0\n2020,10.0ha이상,12.0,42.0\n2021,0.5ha미만,0.25,9.0\n2021,0.5~1.0ha미만,0.75,13.0\n2021,1.0~1.5ha미만,1.25,19.0\n2021,1.5~2.0ha미만,1.75,17.0\n2021,2.0~3.0ha미만,2.5,24.0\n2021,3.0~5.0ha미만,4.0,27.0\n2021,5.0~7.0ha미만,6.0,30.0\n2021,7.0~10.0ha미만,8.5,38.0\n2021,10.0ha이상,12.0,31.0\n2022,0.5ha미만,0.25,6.0\n2022,0.5~1.0ha미만,0.75,12.0\n2022,1.0~1.5ha미만,1.25,15.0\n2022,1.5~2.0ha미만,1.75,16.0\n2022,2.0~3.0ha미만,2.5,15.0\n2022,3.0~5.0ha미만,4.0,24.0\n2022,5.0~7.0ha미만,6.0,22.0\n2022,7.0~10.0ha미만,8.5,31.0\n2022,10.0ha이상,12.0,40.0\n2023,0.5ha미만,0.25,5.0\n2023,0.5~1.0ha미만,0.75,13.0\n2023,1.0~1.5ha미만,1.25,17.0\n2023,1.5~2.0ha미만,1.75,22.0\n2023,2.0~3.0ha미만,2.5,21.0\n2023,3.0~5.0ha미만,4.0,25.0\n2023,5.0~7.0ha미만,6.0,33.0\n2023,7.0~10.0ha미만,8.5,45.0\n2023,10.0ha이상,12.0,45.0\n2024,0.5ha미만,0.25,5.0\n2024,0.5~1.0ha미만,0.75,11.0\n2024,1.0~1.5ha미만,1.25,17.0\n2024,1.5~2.0ha미만,1.75,23.0\n2024,2.0~3.0ha미만,2.5,19.0\n2024,3.0~5.0ha미만,4.0,21.0\n2024,5.0~7.0ha미만,6.0,25.0\n2024,7.0~10.0ha미만,8.5,42.0\n2024,10.0ha이상,12.0,37.0\n2025,0.5ha미만,0.25,6.0\n2025,0.5~1.0ha미만,0.75,13.0\n2025,1.0~1.5ha미만,1.25,19.0\n2025,1.5~2.0ha미만,1.75,19.0\n2025,2.0~3.0ha미만,2.5,23.0\n2025,3.0~5.0ha미만,4.0,27.0\n2025,5.0~7.0ha미만,6.0,32.0\n2025,7.0~10.0ha미만,8.5,40.0\n2025,10.0ha이상,12.0,34.0\n", "02": "연도,영양부족_전체(%),영양부족_남자(%),영양부족_여자(%),영양부족_0-9세(%),영양부족_10-18세(%),영양부족_19-29세(%),영양부족_30-39세(%),영양부족_40-49세(%),영양부족_50-59세(%),영양부족_60-69세(%),영양부족_70세이상(%),영양부족_읍면(%),영양부족_동(%),영양부족_소득하(%),영양부족_소득중하(%),영양부족_소득중(%),영양부족_소득중상(%),영양부족_소득상(%),여성_빈혈_유병률(%)\n1998,19.4,15.1,23.5,17.4,20.8,19.6,15.1,16.3,20.6,26.8,31.4,18.1,24.0,25.3,21.5,17.1,18.2,16.6,11.9\n2001,18.5,14.5,22.0,15.2,21.2,20.8,14.7,16.3,17.6,18.6,32.5,18.4,19.1,23.7,21.7,16.8,16.7,13.6,12.2\n2005,11.6,9.5,13.7,7.1,12.6,16.0,9.1,11.4,9.0,11.9,17.9,11.5,12.0,14.1,13.0,9.8,9.5,11.5,14.0\n2007,17.0,11.4,22.7,13.6,18.3,21.8,13.6,14.6,11.0,20.4,32.3,17.4,15.7,20.8,17.1,15.3,19.5,13.0,16.5\n2008,13.7,10.8,16.5,6.9,17.3,20.7,12.6,9.9,8.2,13.1,24.6,13.6,13.8,17.9,15.0,13.0,11.8,10.4,12.9\n2009,14.2,10.1,18.3,8.4,18.9,19.2,13.1,10.7,8.5,13.4,25.9,14.0,15.2,19.6,15.8,13.3,11.8,10.0,14.1\n2010,10.0,6.9,13.2,6.9,13.8,14.8,7.4,8.9,5.9,7.0,17.5,10.2,9.1,14.1,11.7,8.2,7.6,7.6,12.5\n2011,10.6,7.4,13.8,5.8,13.2,15.4,11.3,7.4,5.3,8.8,20.4,11.1,8.0,12.6,11.3,10.2,8.4,9.4,12.8\n2012,11.9,8.4,15.5,7.4,15.6,17.1,11.0,9.7,8.3,8.7,17.7,11.2,15.3,17.7,10.7,13.0,9.0,8.1,10.9\n2013,8.4,5.4,11.5,5.1,13.5,13.3,7.6,7.4,2.9,4.2,10.0,8.6,6.8,12.0,7.5,8.1,7.6,6.8,11.7\n2014,8.4,5.5,11.4,5.7,13.3,12.4,9.1,6.8,3.4,3.5,10.0,8.3,9.3,11.9,9.0,6.0,8.7,6.3,9.8\n2015,9.0,5.8,12.3,5.7,14.5,13.1,8.9,8.1,4.1,3.8,10.2,8.9,9.5,14.7,10.0,6.4,7.8,5.6,10.4\n2016,12.6,8.3,17.1,6.1,16.5,15.4,13.7,12.3,8.7,9.7,16.6,12.0,16.0,16.0,12.2,13.0,10.0,11.0,12.2\n2017,13.5,10.7,16.5,4.3,17.9,19.9,12.3,13.9,9.8,10.6,16.4,13.3,15.4,18.7,13.3,12.3,13.3,9.6,12.4\n2018,13.1,8.6,17.8,5.6,16.2,16.2,13.7,15.0,8.2,10.1,16.5,13.1,13.5,16.7,12.5,14.0,11.3,10.7,11.7\n2019,16.9,14.5,19.3,4.6,19.3,23.5,15.1,17.3,13.7,15.9,27.6,16.9,17.1,21.8,17.8,18.1,14.0,12.1,11.5\n2020,17.4,14.2,20.7,6.6,24.9,19.9,16.3,18.4,12.0,15.8,27.4,17.2,18.9,20.9,15.6,15.5,19.2,15.7,14.2\n2021,16.6,13.3,19.9,5.7,21.1,20.1,15.4,16.9,13.6,17.2,24.5,16.3,17.8,20.7,20.4,14.9,11.8,14.3,13.6\n2022,16.4,15.0,17.9,3.2,17.8,20.3,20.1,14.9,17.1,16.2,19.3,15.7,20.9,19.9,17.7,17.4,15.5,12.0,12.7\n2023,17.9,16.5,19.4,4.8,22.8,21.5,19.0,19.4,16.4,14.9,21.5,17.9,17.5,21.0,19.8,18.7,15.3,14.6,14.8\n2024,16.7,14.6,19.0,4.8,21.0,22.3,17.4,17.2,13.8,14.0,19.4,16.1,20.1,19.5,16.9,16.0,16.5,14.6,12.7\n", "03": "연도,온실가스_총배출량(백만톤CO2eq),CO₂(백만톤CO2eq),CH₄(백만톤CO2eq),N₂O(백만톤CO2eq),HFCs(백만톤CO2eq),PFCs(백만톤CO2eq),SF6(백만톤CO2eq),NF₃(백만톤CO2eq)\n1996,501.08,437.07,47.05,11.87,3.96,,1.14,\n1997,526.06,457.95,47.03,12.78,4.92,1.88,1.51,\n1998,460.22,395.0,45.64,13.01,3.74,1.84,0.99,\n1999,500.57,430.54,44.85,13.91,5.95,2.12,3.19,\n2000,533.45,462.62,44.63,14.85,6.01,2.55,2.79,\n2001,550.81,482.26,44.91,15.13,3.56,2.27,2.7,\n2002,570.98,500.52,44.52,15.15,5.65,2.25,2.89,\n2003,584.48,512.5,44.25,17.86,3.99,2.59,3.28,\n2004,595.76,521.86,42.44,20.0,4.41,3.17,3.89,\n2005,594.42,521.26,42.15,18.8,4.76,3.17,4.28,\n2006,607.01,533.41,41.86,18.07,5.0,3.26,5.4,\n2007,613.63,546.65,41.12,10.65,5.39,3.33,6.48,\n2008,628.77,561.05,40.77,9.98,6.02,3.1,7.49,0.36\n2009,632.66,564.26,40.75,10.28,6.34,2.26,8.42,0.34\n2010,689.79,618.05,40.62,10.6,7.64,2.52,9.99,0.39\n2011,721.64,652.03,39.48,9.73,8.98,2.33,8.57,0.51\n2012,719.08,647.72,38.85,10.08,10.49,2.51,8.67,0.76\n2013,727.48,653.78,38.31,10.09,12.5,2.57,9.46,0.78\n2014,722.65,645.93,37.94,10.11,14.58,2.76,10.54,0.78\n2015,725.05,650.17,37.81,9.95,16.07,1.81,8.37,0.87\n2016,735.56,660.41,37.59,10.2,18.13,1.81,6.76,0.66\n2017,756.27,677.01,37.88,10.46,20.49,2.59,7.03,0.81\n2018,780.14,697.58,37.11,10.72,23.6,3.92,6.24,0.97\n2019,757.15,673.29,35.9,10.85,25.23,3.84,7.02,1.04\n2020,709.47,623.83,35.51,10.56,27.91,4.51,5.41,1.74\n2021,739.51,650.98,35.28,10.68,30.31,4.75,5.79,1.73\n2022,722.03,633.77,35.06,10.59,33.06,4.07,3.96,1.54\n2023,707.2,621.68,34.24,10.61,33.63,1.8,4.02,1.21\n", "04": "연도,빈곤율_전체(%),빈곤율_남자(%),빈곤율_여자(%),빈곤율_0-17세(%),빈곤율_18-25세(%),빈곤율_26-40세(%),빈곤율_41-50세(%),빈곤율_51-65세(%),빈곤율_66-75세(%),빈곤율_76세이상(%),빈곤율_근로연령(18-65세)(%),빈곤율_은퇴연령(66세이상)(%),빈곤율_노인(65세이상)(%),팔마비율\n2011,18.5,16.7,20.3,16.3,12.9,12.0,14.6,16.1,43.6,55.5,13.9,47.9,46.5,1.73\n2012,18.1,16.3,19.8,16.7,12.8,12.2,14.5,15.0,41.9,55.0,13.6,46.8,45.2,1.7\n2013,18.2,16.5,19.8,16.2,13.0,11.5,14.7,15.3,42.3,55.7,13.6,47.5,46.2,1.58\n2014,18.1,16.3,19.9,16.3,13.2,11.8,14.0,15.4,39.9,55.2,13.6,45.9,44.4,1.5\n2015,17.4,15.5,19.1,15.8,11.0,11.4,12.8,14.9,37.1,54.9,12.7,44.2,43.1,1.4\n2016,17.4,15.6,19.2,15.1,11.8,11.0,13.1,14.4,36.4,57.2,12.7,44.8,43.5,1.43\n2017,17.0,14.9,19.0,13.7,11.2,10.9,11.7,14.4,35.2,56.2,12.3,43.8,42.1,1.42\n2018,16.5,14.4,18.5,12.2,11.1,9.3,11.5,13.4,34.6,55.0,11.5,43.3,42.0,1.34\n2019,16.1,14.1,17.9,10.3,10.0,8.6,10.3,13.3,33.5,55.9,10.9,43.2,41.4,1.31\n2020,15.1,13.4,16.6,9.5,9.0,7.9,10.2,12.7,31.4,52.5,10.3,40.5,39.1,1.26\n2021,14.8,13.1,16.3,9.6,8.4,8.5,9.6,12.3,30.1,51.9,10.1,39.3,37.6,1.25\n2022,14.9,13.0,16.7,9.5,8.7,7.6,9.4,12.6,29.8,54.0,10.0,39.7,38.1,1.23\n2023,14.9,13.1,16.7,8.5,9.3,7.0,9.4,12.6,29.4,54.6,9.8,39.8,38.2,1.22\n2024,15.3,13.6,17.1,9.5,9.3,8.0,9.3,13.1,26.6,53.8,10.3,37.7,35.9,1.23\n", "05": "연도,실업률_전체(%),실업률_남자(%),실업률_여자(%),실업률_15-19세(%),실업률_20-29세(%),실업률_30-39세(%),실업률_40-49세(%),실업률_50-59세(%),실업률_60세이상(%)\n2010,3.7,4.0,3.3,11.9,7.7,3.5,2.5,2.5,2.8\n2011,3.4,3.6,3.1,10.8,7.4,3.4,2.1,2.1,2.6\n2012,3.2,3.4,3.0,8.9,7.4,3.0,2.0,2.1,2.4\n2013,3.1,3.3,2.8,10.3,7.8,3.0,2.0,1.9,1.8\n2014,3.5,3.5,3.5,9.3,9.0,3.1,2.2,2.2,2.3\n2015,3.6,3.6,3.5,10.6,9.0,3.1,2.3,2.4,2.5\n2016,3.7,3.8,3.6,10.0,9.8,3.1,2.1,2.3,2.7\n2017,3.7,3.8,3.5,8.7,9.9,3.3,2.1,2.2,2.9\n2018,3.8,3.9,3.7,9.3,9.5,3.4,2.5,2.5,3.1\n2019,3.8,3.9,3.6,8.6,8.9,3.3,2.3,2.5,3.4\n2020,4.0,3.9,4.0,8.7,9.0,3.5,2.5,2.9,3.6\n2021,3.7,3.6,3.8,8.7,7.7,3.3,2.4,2.6,3.8\n2022,2.9,2.7,3.1,6.5,6.4,2.7,2.0,1.7,2.8\n2023,2.7,2.6,2.8,5.5,5.9,2.6,1.9,1.7,2.6\n2024,2.8,2.8,2.9,7.2,5.8,2.7,1.9,1.8,2.9\n2025,2.8,2.8,2.8,5.3,6.1,2.7,2.0,1.8,2.8\n", "06": "연도,전체_수(명),의사_수(명),치과의사_수(명),한의사_수(명),간호사_수(명),약사_수(명),물리치료사_수(명),작업치료사_수(명),사회복지사_수(명)\n2010,295172,82137,20936,16156,116071,32152,22827,2693,2200\n2011,304705,84544,21410,16826,118771,33643,24017,3094,2400\n2012,310764,86761,21888,17353,120491,32560,25475,3594,2642\n2013,332660,90710,22482,18199,134748,32537,27111,3966,2907\n2014,351550,92927,22952,18767,147210,32645,29326,4667,3056\n2015,368954,95076,23540,19246,158247,33206,31194,5133,3312\n2016,398223,97713,24150,19737,179989,33946,33345,5837,3506\n2017,414196,100241,25300,20389,185853,36980,35587,6258,3588\n2018,430795,102471,25792,20759,195314,37837,38015,6807,3800\n2019,460995,105628,26486,21630,215293,38941,41457,7465,4095\n2020,478086,107976,26978,22038,225462,39765,43735,7996,4136\n2021,498552,109937,27491,22542,240307,40388,45385,8267,4235\n2022,517101,112321,27987,22807,254227,40327,46871,8242,4319\n2023,538968,114699,28392,23106,269434,41380,48978,8588,4391\n2024,550839,109274,28836,23642,282712,42103,50738,9042,4492\n2025,577099,115748,29173,24072,298554,42807,52435,9667,4643\n", "07": "연도,시간당임금_전체(원),시간당임금_남자(원),시간당임금_여자(원),소비자물가지수(2020=100)\n2006,11172,13064,7915,76.08\n2007,12149,14232,8664,78.01\n2008,12920,15152,9217,81.66\n2009,12382,14503,8856,83.91\n2010,12878,15095,9300,86.37\n2011,13769,16050,10082,89.85\n2012,14967,17317,11228,91.82\n2013,16067,18658,12035,93.01\n2014,16701,19505,12500,94.2\n2015,15978,18681,11915,94.86\n2016,16709,19476,12573,95.78\n2017,17381,20183,13292,97.65\n2018,19522,22515,15265,99.09\n2019,20573,23566,16358,99.47\n2020,19316,22086,15372,100.0\n2021,19806,22632,15802,102.5\n2022,22651,25886,18113,107.72\n2023,22878,26042,18502,111.59\n2024,25156,28734,20363,114.18\n2025,25839,29411,21164,116.61\n", "08": "연도,소비자물가지수(2020=100),농축수산물물가지수(2020=100)\n2000,63.15,47.54\n2001,65.72,50.53\n2002,67.53,53.68\n2003,69.91,56.86\n2004,72.42,61.94\n2005,74.41,63.1\n2006,76.08,63.03\n2007,78.01,64.23\n2008,81.66,64.55\n2009,83.91,68.7\n2010,86.37,75.61\n2011,89.85,82.53\n2012,91.82,85.14\n2013,93.01,84.59\n2014,94.2,82.32\n2015,94.86,83.95\n2016,95.78,87.17\n2017,97.65,91.96\n2018,99.09,95.33\n2019,99.47,93.73\n2020,100.0,100.0\n2021,102.5,108.73\n2022,107.72,112.82\n2023,111.59,116.28\n2024,114.18,123.1\n2025,116.61,126.01\n", "09": "연도,자연재난_사망실종자수(명)\n1995,158\n1996,77\n1997,38\n1998,384\n1999,89\n2000,49\n2001,82\n2002,270\n2003,148\n2004,14\n2005,52\n2006,63\n2007,17\n2008,11\n2009,13\n2010,14\n2011,78\n2012,16\n2013,4\n2014,2\n2015,0\n2016,7\n2017,7\n2018,53\n2019,48\n2020,75\n2021,42\n2022,64\n2023,140\n2024,121\n", "10": "연도,국제선_항공승객수(천명),관광산업_종사자수(명)\n2011,42649,\n2012,47703,\n2013,50987,227135\n2014,56779,230334\n2015,61434,235604\n2016,73001,261978\n2017,76956,280270\n2018,85925,267561\n2019,90386,275619\n2020,14240,191524\n2021,3209,195280\n2022,19500,198626\n2023,68319,217121\n2024,,219133\n", "11": "연도,국내물질소비량(톤),1인당_국내물질소비량(톤),GDP당_국내물질소비량(kg/USD)\n2000,716611575,15.32,0.86\n2001,740673250,15.74,0.85\n2002,760448225,16.07,0.81\n2003,810551785,17.05,0.83\n2004,787980414,16.51,0.77\n2005,710893296,14.84,0.67\n2006,733802040,15.27,0.65\n2007,764360121,15.85,0.64\n2008,774062899,15.99,0.63\n2009,757864461,15.6,0.61\n2010,760672507,15.58,0.58\n2011,756952532,15.39,0.55\n2012,793990880,16.0,0.57\n2013,810374722,16.18,0.56\n2014,812306408,16.07,0.54\n2015,847291134,16.62,0.55\n2016,911596801,17.77,0.57\n2017,890277340,17.33,0.54\n2018,923248792,17.9,0.55\n2019,870377788,16.81,0.5\n2020,838925635,16.18,0.49\n2021,885328145,17.1,0.49\n2022,862951843,16.7,0.47\n2023,832283585,16.09,0.44\n", "12": "연도,흡연율_전체(%),흡연율_남자(%),흡연율_여자(%),1인당_알코올소비량(L),암사망률(10만명당)\n2000,,,,,122.4\n2001,30.2,60.9,5.2,,123.8\n2002,,,,,130.9\n2003,,,,,131.9\n2004,,,,,133.4\n2005,28.8,51.7,5.7,9.1,134.6\n2006,,,,9.19,134.8\n2007,25.3,45.1,5.3,9.27,138.1\n2008,27.8,47.8,7.4,9.4,139.5\n2009,27.3,47.0,7.1,8.84,140.5\n2010,27.5,48.3,6.3,8.91,144.4\n2011,27.1,47.3,6.8,8.86,142.8\n2012,25.8,43.7,7.9,8.99,146.5\n2013,24.1,42.2,6.2,8.69,149.0\n2014,24.2,43.2,5.7,8.92,150.9\n2015,22.6,39.4,5.5,9.09,150.8\n2016,23.9,40.7,6.4,8.69,153.0\n2017,22.3,38.1,6.0,8.65,153.9\n2018,22.4,36.7,7.5,8.48,154.3\n2019,21.5,35.7,6.7,8.29,158.2\n2020,20.6,34.0,6.6,7.88,160.1\n2021,19.3,31.3,6.9,7.66,161.1\n2022,17.7,30.0,5.0,8.01,162.7\n2023,19.6,32.4,6.3,7.88,166.7\n2024,16.7,28.5,4.2,,174.3\n", "13": "연도,재생에너지_발전용량(인당W),재생에너지_비율(%),에너지집약도(TOE/백만원),GDP당_온실가스(톤/10억원),온실가스_총배출량(백만톤CO2eq),미세먼지_PM10(㎍/㎥),초미세먼지_PM2.5(㎍/㎥)\n2000,34.65,,0.183,,533.45,,\n2001,35.38,,0.177,,550.81,,\n2002,35.44,,0.174,,570.98,,\n2003,35.38,,0.173,,584.48,,\n2004,35.22,,0.167,,595.76,,\n2005,38.6,2.3,0.166,,594.42,,\n2006,40.23,2.3,0.16,,607.01,,\n2007,41.16,2.5,0.159,,613.63,,\n2008,49.08,2.6,0.157,,628.77,,\n2009,53.36,2.7,0.16,,632.66,,\n2010,57.46,2.7,0.161,437.4,689.79,51.0,\n2011,62.42,2.4,0.163,440.6,721.64,50.0,\n2012,70.07,3.0,0.159,428.8,719.08,45.0,\n2013,86.75,3.2,0.156,420.0,727.48,49.0,\n2014,112.94,2.9,0.152,404.2,722.65,49.0,\n2015,138.78,3.6,0.15,394.0,725.05,48.0,26.0\n2016,178.62,3.3,0.152,387.4,735.56,47.0,26.0\n2017,217.05,3.8,0.151,385.1,756.27,45.0,25.0\n2018,260.33,4.0,0.148,385.0,780.14,41.0,23.0\n2019,340.39,4.0,0.144,365.3,757.15,41.0,23.0\n2020,425.99,4.3,0.139,344.7,709.47,33.0,19.0\n2021,471.01,5.1,0.139,343.4,739.51,36.0,18.0\n2022,526.62,,0.137,326.4,722.03,31.0,18.0\n2023,589.76,,0.133,314.7,707.2,37.0,19.0\n2024,653.5,,0.133,,,29.0,16.0\n2025,,,0.129,,,,\n", "14": "연도,GDP대비_연구개발비(%),GDP대비_제조업부가가치(%),1인당_실질GDP성장률(%),GDP대비_노동소득(%),실업률(%)\n2000,2.05,26.45,8.6,,\n2001,2.2,24.88,4.1,,\n2002,2.13,24.49,7.2,,\n2003,2.2,24.12,2.6,,\n2004,2.35,26.12,4.8,57.0,\n2005,2.43,25.74,4.0,57.9,\n2006,2.62,25.31,4.9,58.4,\n2007,2.76,25.48,5.5,57.6,\n2008,2.87,25.62,2.6,57.3,\n2009,3.02,25.77,0.4,56.5,\n2010,3.18,27.44,6.5,54.7,3.7\n2011,3.44,29.0,2.9,55.4,3.4\n2012,3.69,28.74,1.6,55.9,3.2\n2013,3.77,28.87,2.3,56.1,3.1\n2014,3.89,28.28,2.3,56.8,3.5\n2015,3.79,27.82,2.0,57.0,3.6\n2016,3.79,27.51,2.5,56.6,3.7\n2017,4.07,28.03,3.1,56.2,3.7\n2018,4.27,27.77,2.9,57.1,3.8\n2019,4.36,26.37,2.1,58.7,3.8\n2020,4.52,25.7,-0.9,59.2,4.0\n2021,4.6,26.25,4.6,57.5,3.7\n2022,4.85,26.5,2.9,58.3,2.9\n2023,4.94,25.46,1.6,58.8,2.7\n2024,5.13,26.62,2.1,58.1,2.8\n2025,,27.43,,58.7,2.8\n"};
+async function getText(id){ if(!(id in EMBED)) throw new Error('no data'); return EMBED[id]; }
+function parseCSV(t){return t.replace(/^﻿/,'').trim().split(/\r?\n/).map(l=>l.split(','))}
+async function loadPreview(id){
+  const it=ITEMS.find(i=>i.id===id), pv=$('#pv');
+  pv.innerHTML=`<div class="head"><b>${it.file}</b><span class="note" style="font-size:.84rem;color:var(--muted)">불러오는 중…</span></div>`;
+  try{
+    const rows=parseCSV(await getText(id)), head=rows[0], body=rows.slice(1);
+    let t='<table><thead><tr>'+head.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+    body.forEach(r=>{t+='<tr>'+head.map((_,j)=>{const c=r[j]??'';return `<td>${c}</td>`}).join('')+'</tr>'});
+    t+='</tbody></table>';
+    pv.innerHTML=`<div class="head"><b>${it.file}</b><span style="font-size:.84rem;color:var(--muted)">${body.length}행 × ${head.length}열</span></div>
+      <p style="font-size:.86rem;color:var(--muted)">원본 통계: ${it.src}</p><div class="tablebox">${t}</div>`;
+  }catch(e){pv.innerHTML=`<p>미리보기를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 눌러 보세요.</p>`}
+}
+
+async function save(filename, dataPromise){
+  try{
+    statusEl.textContent=`${filename} 준비 중…`;
+    const data=await dataPromise;
+    const blob = data instanceof Blob ? data : new Blob([data],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const el=document.createElement('a'); el.href=url; el.download=filename; document.body.appendChild(el); el.click(); el.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    statusEl.textContent=`${filename} 다운로드를 시작했습니다.`;
+  }catch(e){ statusEl.textContent='파일을 만들지 못했습니다. 다시 눌러 주세요.'; }
+}
+
+document.addEventListener('click',e=>{
+  const f=e.target.closest('[data-g]'); if(f){filter=f.dataset.g===''?null:Number(f.dataset.g); renderFilters(); renderGrid(); return}
+  const p=e.target.closest('[data-prev]'); if(p){openId=openId===p.dataset.prev?null:p.dataset.prev; renderGrid(); if(openId) $('#pv')?.scrollIntoView({block:'nearest'}); return}
+  const d=e.target.closest('[data-dl]'); if(d){const it=ITEMS.find(i=>i.id===d.dataset.dl); save(it.file, getText(it.id).then(t=>'﻿'+t.replace(/^﻿/,''))); return}
+});
+const ZIP_B64='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';
+$('#dl-all').addEventListener('click',()=>save('수행평가_데이터.zip', Promise.resolve(new Blob([Uint8Array.from(atob(ZIP_B64),c=>c.charCodeAt(0))],{type:'application/zip'}))));
+document.querySelectorAll('.copybtn').forEach(b=>b.addEventListener('click',async()=>{
+  const pre=document.getElementById(b.dataset.for);
+  try{await navigator.clipboard.writeText(pre.innerText); b.textContent='복사됨'}catch(_){const r=document.createRange(); r.selectNodeContents(pre); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent='선택됨'}
+  setTimeout(()=>b.textContent='복사',1800);
+}));
+
+renderFilters(); renderGrid();
+/* checklist: saved only in this browser */
+(function(){
+  const boxes=[...document.querySelectorAll('.citem input')], prog=$('#cprog'), KEY='check-v2';
+  let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){}
+  boxes.forEach(b=>{b.checked=!!saved[b.id]});
+  const upd=()=>{const n=boxes.filter(b=>b.checked).length; prog.textContent=`${boxes.length}개 중 ${n}개 완료`+(n===boxes.length?' · 제출할 준비가 됐어요':'');
+    try{localStorage.setItem(KEY,JSON.stringify(Object.fromEntries(boxes.map(b=>[b.id,b.checked]))))}catch(_){}};
+  boxes.forEach(b=>b.addEventListener('change',upd));
+  $('#creset').addEventListener('click',()=>{boxes.forEach(b=>b.checked=false);upd()});
+  upd();
+})();
+
+</script>
+
+</body>
+</html>
