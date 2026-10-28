@@ -61,6 +61,9 @@ section{display:grid;gap:20px}
 .step .n{font-family:var(--f-mono);font-size:2.2rem;line-height:1;color:var(--accent)}
 .step ul{margin:0;padding-left:1.1em;font-size:.93rem;display:grid;gap:4px}
 .step .fn{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+.pg{display:inline-block;font-family:var(--f-mono);font-size:.74rem;line-height:1.5;color:var(--accent);background:var(--accent-soft);border-radius:3px;padding:0 6px;margin-left:2px;white-space:nowrap;vertical-align:1px}
+.guidebox{display:grid;gap:4px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);padding:12px 16px;font-size:.95rem}
+.guidebox > b{font-family:var(--f-display)}
 .note-box{display:grid;gap:4px;font-size:.86rem;background:var(--accent-soft);border-radius:4px;padding:10px 12px}
 .note-box b{font-family:var(--f-display);font-size:.84rem;color:var(--accent)}
 .step.key{background:var(--accent-soft)}
@@ -181,15 +184,16 @@ footer{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padd
   <div>
     <h2>이렇게 진행합니다</h2>
   </div>
+  <div class="guidebox"><b>어디서부터 해야 할지 모르겠다면</b><span>교과서 <b>107~116쪽 「보험 납입액 예측하기」</b>가 이 과제와 똑같은 순서로 진행돼요. 보험 데이터 자리에 내가 고른 데이터를 넣는다고 생각하고 따라가 보세요. 단계마다 붙은 <span class="pg">교과서 ○쪽</span>을 펴면 그 내용이 나옵니다.</span></div>
   <div class="steps">
     <div class="step">
       <span class="n">1</span>
       <h3>데이터 및 주제 정하기</h3>
       <ul>
-        <li>데이터 하나를 고릅니다. 아래 예시 중에서 골라도 되고, 직접 찾아도 됩니다. 직접 찾을 경우 CSV 파일이어야 하고 출처를 기록합니다.</li>
-        <li>데이터를 고른 이유를 씁니다.</li>
-        <li>데이터와 관련해 해결할 질문을 세웁니다. 아래 데이터 카드의 질문 예시를 참고하세요.</li>
-        <li>데이터 개수, 자료형, 내가 쓸 열의 평균·최솟값·최댓값을 정리합니다.</li>
+        <li>데이터 하나를 고릅니다. 아래 예시 중에서 골라도 되고, 직접 찾아도 됩니다. 직접 찾을 경우 CSV 파일이어야 하고 출처를 기록합니다. <span class="pg">교과서 78쪽</span></li>
+        <li>데이터를 고른 이유를 씁니다. 문제와 관련 있는지, 믿을 만한지, 양이 충분한지 생각해 보세요. <span class="pg">교과서 77~78쪽</span></li>
+        <li>데이터와 관련해 해결할 질문을 세웁니다. 아래 데이터 카드의 질문 예시를 참고하세요. <span class="pg">교과서 107쪽</span></li>
+        <li>데이터 개수, 자료형, 내가 쓸 열의 평균·최솟값·최댓값을 정리합니다. <span class="pg">교과서 109~110쪽</span></li>
       </ul>
       <div class="fn">info() · describe()</div>
     </div>
@@ -197,9 +201,9 @@ footer{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padd
       <span class="n">2</span>
       <h3>데이터 전처리하기</h3>
       <ul>
-        <li>결측치의 개수를 확인합니다.</li>
-        <li>결측치가 있으면 삭제할지, 대푯값으로 대체할지 정하고 처리합니다. 결측치가 없다면 "결측치가 0개라 처리하지 않았다"고 씁니다.</li>
-        <li>결측치를 처리한 뒤 상자 그림을 그려 이상치를 확인하고, 그래프를 보고 한 줄로 씁니다.</li>
+        <li>결측치의 개수를 확인합니다. <span class="pg">교과서 83쪽, 111쪽</span></li>
+        <li>결측치가 있으면 삭제할지, 대푯값으로 대체할지 정하고 처리합니다. 결측치가 없다면 "결측치가 0개라 처리하지 않았다"고 씁니다. <span class="pg">교과서 삭제 84쪽, 대체 85쪽</span></li>
+        <li>결측치를 처리한 뒤 상자 그림을 그려 이상치를 확인하고, 그래프를 보고 한 줄로 씁니다. <span class="pg">교과서 85~86쪽</span></li>
       </ul>
       <div class="note-box">
         <b>채점 안내</b>
@@ -211,10 +215,10 @@ footer{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padd
       <span class="n">3</span>
       <h3>기계학습 모델(회귀) 만들기</h3>
       <ul>
-        <li>이 문제가 회귀 모델에 적합한 이유를 씁니다.</li>
-        <li>독립 변수(X)와 종속 변수(y)를 정합니다.</li>
-        <li>훈련 데이터와 테스트 데이터를 7:3으로 나눕니다.</li>
-        <li>훈련 데이터로 선형 회귀 모델을 학습시킵니다.</li>
+        <li>이 문제가 회귀 모델에 적합한 이유를 씁니다. <span class="pg">교과서 99쪽, 112쪽</span></li>
+        <li>독립 변수(X)와 종속 변수(y)를 정합니다. <span class="pg">교과서 113쪽</span></li>
+        <li>훈련 데이터와 테스트 데이터를 7:3으로 나눕니다. <span class="pg">교과서 114쪽</span></li>
+        <li>훈련 데이터로 선형 회귀 모델을 학습시킵니다. <span class="pg">교과서 115쪽</span></li>
       </ul>
       <div class="fn">X = df[['열']] · y = df['열'] · train_test_split() · LinearRegression() · fit()</div>
     </div>
@@ -222,10 +226,10 @@ footer{font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padd
       <span class="n">4</span>
       <h3>성능 평가와 결과 해석하기</h3>
       <ul>
-        <li>테스트 데이터로 예측한 결과를 확인합니다.</li>
-        <li>결정 계수를 구해, 예측을 잘했는지 확인합니다.</li>
+        <li>테스트 데이터로 예측한 결과를 확인합니다. <span class="pg">교과서 115쪽</span></li>
+        <li>결정 계수를 구해, 예측을 잘했는지 확인합니다. 1에 가까울수록 예측을 잘한 것입니다. <span class="pg">교과서 116쪽</span></li>
         <li>맨 처음 세운 질문에 대한 답을 씁니다.</li>
-        <li>데이터 분석을 통해 알게 된 점, 아쉬운 점, 소감을 씁니다.</li>
+        <li>데이터 분석을 통해 알게 된 점, 아쉬운 점, 소감을 씁니다. 아쉬운 점은 성능을 높일 방법과 함께 써 보세요. <span class="pg">교과서 116쪽 해 보기</span></li>
       </ul>
       <div class="fn">predict() · r2_score()</div>
     </div>
